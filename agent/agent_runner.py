@@ -1,41 +1,58 @@
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_react_agent
-from langchain.agents import AgentExecutor
-from langchain import hub
+from langgraph.prebuilt import create_react_agent
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from dotenv import load_dotenv
 
-from tools.context_presence_judge import *
-from tools.web_search_tool import *
-
 # ---- Load environment variables ----
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 load_dotenv()
-openrouter_api_key = os.getenv("LLM_ID")
-openai_api_key = os.getenv("OPENAI_API_KEY")
-os.environ["OPENAI_API_KEY"] = openai_api_key
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 
 # ---- Initialize LLM ----
 llm = ChatOpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=openrouter_api_key,
-    model="mistralai/mistral-7b-instruct:free",
+    model="gpt-4o-mini",
     temperature=0.25,
     max_tokens=2048
+).with_config({"verbose": True})
+
+# ---- Import Tools ----
+from tools.context_presence_judge import *
+from tools.web_search_tool import *
+
+ContextPresenceJudge= build_context_presence_tool(llm)
+tools = [ContextPresenceJudge, WebSearchTool]
+
+# ---- Create the Prompt Template ----
+template = """
+You are an AI research assistant. Use the following information to answer clearly and concisely:
+{context}
+Now, summarize the key point as a clean final answer:
+"""
+prompt = PromptTemplate(
+    input_variables=["context"],
+    template=template
 )
 
-# ---- Initialize Tools ----
-ContextPresenceJudge = build_context_presence_tool(llm)
-# WebSearchTool = build_web_search_tool(llm)
+# ---- Create ReAct Agent ----
+react_agent = create_react_agent(llm, tools)
 
-# ---- Create ReAct Agent and Executor ----
-# Load a ReAct prompt from LangChain Hub
-prompt = hub.pull("hwchase17/react")
-tools = [ContextPresenceJudge]
-# Build ReAct agent
-react_agent = create_react_agent(llm, tools, prompt)
-# Create an executor to run it
-agent = AgentExecutor(agent=react_agent, tools=tools, verbose=True)
+# ---- Run the Agent ----
+response = react_agent.invoke(
+    {"messages": [{"role": "user", "content": "Search the web for the latest news about LangChain"}]},
+    config={"recursion_limit": 50}
+)
 
-response = agent.invoke({"input": "What is LangChain used for?"})
-print(response["output"])
+# ---- Use LLMChain to Clean the Output ----
+chain = LLMChain(llm=llm, prompt=prompt)
+
+# Sometimes response is a dict or has nested content
+context_text = str(response.get("messages", response))
+
+clean_output = chain.run(context=context_text)
+
+print("\n---- FINAL SUMMARY ----\n")
+print(clean_output)
