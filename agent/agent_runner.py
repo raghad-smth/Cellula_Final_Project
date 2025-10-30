@@ -5,6 +5,7 @@ from langchain.chains import LLMChain
 import os, sys
 from dotenv import load_dotenv
 
+
 # ---- Load environment variables ----
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 load_dotenv()
@@ -22,9 +23,11 @@ llm = ChatOpenAI(
 # ---- Import Tools ----
 from tools.context_presence_judge import *
 from tools.web_search_tool import *
+from tools.context_relevance_checker import *
+
 
 ContextPresenceJudge= build_context_presence_tool(llm)
-tools = [ContextPresenceJudge, WebSearchTool]
+tools = [ContextPresenceJudge, WebSearchTool, ContextRelevanceTool]
 
 # ---- Create the Prompt Template ----
 template = """
@@ -40,10 +43,11 @@ prompt = PromptTemplate(
 # ---- Create ReAct Agent ----
 react_agent = create_react_agent(llm, tools)
 
+
 # ---- Run the Agent ----
 response = react_agent.invoke(
     {"messages": [{"role": "user", "content": "Search the web for the latest news about LangChain"}]},
-    config={"recursion_limit": 50}
+    config={"recursion_limit": 50, "verbose": True}
 )
 
 # ---- Use LLMChain to Clean the Output ----
