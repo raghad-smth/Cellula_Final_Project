@@ -9,6 +9,6 @@ def build_context_presence_tool(llm):
     return Tool.from_function(
         func=chain.run,
         name="ContextPresenceJudge",
-        description="Checks if context is present in user input"
+        description="Always use this function after every user query to check if context is present in user input, if not you should use the web search tool to find relevant context."
     )
 

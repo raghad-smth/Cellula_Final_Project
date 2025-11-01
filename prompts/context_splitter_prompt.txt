@@ -1,0 +1,13 @@
+
+Separate the following text into two parts:
+1. Background context or details
+2. The user's actual question or request
+
+Return **only valid JSON** in this exact format, having the two keys "background" and "question":
+{
+    "background": "...",
+    "question": "..."
+}
+
+Text:
+{text}

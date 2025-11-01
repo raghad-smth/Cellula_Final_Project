@@ -19,6 +19,14 @@ def web_search(query):
 WebSearchTool = Tool.from_function(
     func=web_search,
     name="WebSearchTool",
-    description="Searches the web to retrieve missing context"
+    description=(
+        "Use this tool when the user's question lacks sufficient background context "
+        "or factual information that cannot be inferred from the conversation history. "
+        "This tool performs a real web search via the Tavily API to gather the most recent, "
+        "relevant, and factual data related to the query. "
+        "It should typically be used after the ContextPresenceJudge indicates that context "
+        "is missing or incomplete. "
+        "Return only the most relevant factual text content (not metadata or links)."
+    )
 )
 
