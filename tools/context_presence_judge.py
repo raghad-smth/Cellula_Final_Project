@@ -9,6 +9,10 @@ def build_context_presence_tool(llm):
     return Tool.from_function(
         func=chain.run,
         name="ContextPresenceJudge",
-        description="Always use this function after every user query to check if context is present in user input, if not you should use the web search tool to find relevant context."
+        description=(
+            "Use this tool after every user query (or after ContextSplitter) to decide whether enough context is present. "
+            "If the input includes 'Background:' and 'Question:' sections, you MUST read and consider both when deciding. "
+            "If the message contains only a question with no background, assume context is missing and call WebSearchTool."
+        )
     )
 

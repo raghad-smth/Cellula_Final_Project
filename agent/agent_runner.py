@@ -19,7 +19,7 @@ from tools.context_splitter import *
 
 # ---- Setup LangSmith Tracing ----
 client = Client()
-client.create_project("Agent-Debug-Project-10")
+client.create_project("Agent-Debug-Project-11")
 
 # ---- Load Environment Variables ----
 load_dotenv()
