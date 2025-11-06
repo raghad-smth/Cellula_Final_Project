@@ -53,19 +53,8 @@ def relevance_checker_function(tool_input: str) -> str:
     # Run the chain with the parsed components
     return relevance_chain.run(query=query.strip(), context=context.strip())
 
-# ContextRelevanceTool = Tool(
-#     name="context_relevance_checker",
-#     description="**MANDATORY TOOL.** Before answering any question that involves external information or context (like a search or retrieval result), you MUST use this tool first. The input MUST be a single string in the format: `original user query|retrieved context string`. Its output is the ONLY context you can use to formulate your final answer. Determines if a given context is relevant to the user's query. Use it after each context retrieval to filter out irrelevant information.",
-#     func=relevance_checker_function 
-# )
-
 ContextRelevanceTool = Tool(
     name="context_relevance_checker",
-    description=(
-        "Use this tool to test whether retrieved information is relevant to a user's question. "
-        "You must pass a single string in the format: 'query|context'. "
-        "For example: 'What is LangChain?|LangChain is an open-source framework for LLM applications.' "
-        "If you don't yet have context, call WebSearchTool first."
-    ),
-    func=relevance_checker_function
+    description="**MANDATORY TOOL.** Before answering any question that involves external information or context (like a search or retrieval result), you MUST use this tool first. The input MUST be a single string in the format: `original user query|retrieved context string`. Its output is the ONLY context you can use to formulate your final answer. Determines if a given context is relevant to the user's query. Use it after each context retrieval to filter out irrelevant information.",
+    func=relevance_checker_function 
 )

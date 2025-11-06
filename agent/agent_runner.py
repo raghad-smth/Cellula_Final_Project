@@ -1,6 +1,9 @@
 import os
 import sys
+import time
 from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
@@ -17,11 +20,11 @@ from tools.web_search_tool import *
 from tools.context_relevance_checker import *
 from tools.context_splitter import *
 
-# ---- Setup LangSmith Tracing ----
+# ---- Setup LangSmith (Optional for tracing) ----
 client = Client()
-client.create_project("Agent-Debug-Project-11")
+client.create_project(f"Agent-Debug-Project-{int(time.time())}")
 
-# ---- Load Environment Variables ----
+# ---- Load Env Vars ----
 load_dotenv()
 openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 
@@ -45,97 +48,67 @@ tools = [
     ContextSplitter
 ]
 
-# ---- Initialize Memory ----
+# ---- Memory ----
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-# ---- Create ReAct Agent ----
+# ---- ReAct Agent ----
 react_agent = create_react_agent(llm, tools)
 
-# ---- Create the Cleanup LLMChain ----
+# ---- Optional Cleanup Chain ----
 template = """
 You are an AI research assistant. Use the following information to answer clearly and concisely:
 {context}
 
 Now, summarize the key point as a clean final answer:
 """
-prompt = PromptTemplate(
-    input_variables=["context"],
-    template=template
-)
+prompt = PromptTemplate(input_variables=["context"], template=template)
 cleanup_chain = LLMChain(llm=llm, prompt=prompt)
 
-
-# ---- Helper Function to Extract Last AI Message ----
+# ---- Helper Function ----
 def extract_last_ai_message(response):
-    """
-    Extracts the text content of the last AI (assistant) message from a LangGraph or LangChain response.
-    Handles both dict and BaseMessage object formats.
-    """
-    # Safety: if the agent response is dict-like
     if isinstance(response, dict) and "messages" in response:
         messages = response["messages"]
     else:
-        # fallback if it's already a list or a single message
         messages = response if isinstance(response, list) else [response]
 
-    last_ai_message = None
-
-    # Iterate backwards to find the most recent assistant message
     for msg in reversed(messages):
-        role = None
-        content = None
-
-        # Handle LangChain Message objects
         if isinstance(msg, AIMessage):
-            role = "assistant"
-            content = msg.content
+            return msg.content
+        elif isinstance(msg, dict) and msg.get("role") == "assistant":
+            return msg.get("content")
 
-        # Handle dict-based messages
-        elif isinstance(msg, dict):
-            role = msg.get("role")
-            content = msg.get("content")
+    return str(response)
 
-        # Stop at the first assistant message found
-        if role == "assistant" and content:
-            last_ai_message = content
-            break
+# ---- FastAPI App ----
+app = FastAPI(title="Cellula AI Agent", version="1.0")
 
-    # Fallback if no assistant message found
-    return last_ai_message or str(response)
+class UserMessage(BaseModel):
+    message: str
 
+@app.get("/")
+def home():
+    return {"message": "🧠 Cellula AI Agent is running successfully!"}
 
-# ---- Chat Loop ----
-print("\n🧠 Agent ready! Type 'exit' to stop chatting.\n")
+@app.post("/chat")
+def chat_with_agent(user_input: UserMessage):
+    try:
+        # Combine memory + user input
+        past_convo = "\n".join([f"{m.type.capitalize()}: {m.content}" for m in memory.chat_memory.messages])
+        full_input = f"{past_convo}\nUser: {user_input.message}"
 
-while True:
-    user_input = input("🧍 You: ").strip()
-    if user_input.lower() == "exit":
-        print("👋 Goodbye!")
-        break
+        # Invoke Agent
+        response = react_agent.invoke(
+            {"messages": [{"role": "user", "content": full_input}]},
+            config={"recursion_limit": 50, "verbose": True, "run_name": "Chat Session"}
+        )
 
-    # Combine memory context + new user message
-    past_convo = "\n".join([f"{m.type.capitalize()}: {m.content}" for m in memory.chat_memory.messages])
-    full_input = f"{past_convo}\nUser: {user_input}"
+        clean_output = extract_last_ai_message(response)
 
-    # ---- Run the Agent ----
-    response = react_agent.invoke(
-        {"messages": [{"role": "user", "content": full_input}]},
-        config={
-            "recursion_limit": 50,
-            "verbose": True,
-            "run_name": "Chat Session"
-        }
-    )
+        # Update memory
+        memory.chat_memory.add_user_message(user_input.message)
+        memory.chat_memory.add_ai_message(clean_output)
 
-    # # ---- Clean and Summarize Output ----
-    # context_text = str(response.get("messages", response))
-    # clean_output = cleanup_chain.run(context=context_text)
+        return {"response": clean_output}
 
-    clean_output = extract_last_ai_message(response)
-
-    # ---- Save to Memory ----
-    memory.chat_memory.add_user_message(user_input)
-    memory.chat_memory.add_ai_message(clean_output)
-
-    print("\n🤖 Agent:", clean_output)
-    print("-" * 80)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
