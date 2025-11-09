@@ -29,8 +29,10 @@ KAIRO combines multiple advanced tools and frameworks to achieve reliable perfor
 * **React (via v0)** – Used to build the front-end interface for user interaction.
 * **OpenRouter (GPT-4-mini)** – The primary large language model used for reasoning and response generation.
 * **Tavily API** – Handles live web search functionality within the agent.
-<img width="1874" height="828" alt="image" src="https://github.com/user-attachments/assets/7635c594-ff7b-4dc4-a381-d525ec4f573c" />
+<img width="1874" height="828" alt="image" src="https://github.com/user-attachments/assets/7635c594-ff7b-4dc4-a381-d525ec4f573c"/>
+
 *Sinppet from the front-end*
+
 ---
 
 ## 🔷 Architecture Overview
