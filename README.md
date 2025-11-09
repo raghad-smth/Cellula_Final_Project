@@ -3,7 +3,7 @@
 **KAIRO** is a **context-aware intelligent agent** designed to deliver highly accurate, contextually relevant responses by leveraging multiple reasoning and retrieval tools in real-time.
 The name **KAIRO** originates from the Greek word *“καιρός”*, meaning *the right or opportune moment*,  a reflection of the agent’s ability to remain aware of context and respond appropriately based on the information it receives.
 <img width="1889" height="824" alt="image" src="https://github.com/user-attachments/assets/b27240bd-b2d1-4cc5-99db-cdd29da74746" />
-
+*Sinppet from the front-end*
 
 ---
 
@@ -28,7 +28,8 @@ KAIRO combines multiple advanced tools and frameworks to achieve reliable perfor
 * **React (via v0)** – Used to build the front-end interface for user interaction.
 * **OpenRouter (GPT-4-mini)** – The primary large language model used for reasoning and response generation.
 * **Tavily API** – Handles live web search functionality within the agent.
-
+<img width="1874" height="828" alt="image" src="https://github.com/user-attachments/assets/7635c594-ff7b-4dc4-a381-d525ec4f573c" />
+*Sinppet from the front-end*
 ---
 
 ## 🔷 Architecture Overview
