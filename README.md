@@ -88,7 +88,7 @@ If you’ve set up your **LangSmith API key**, you’ll also be able to monitor 
 │
 ├── agent/                # Core agent logic
 ├── tools/                # All implemented tools
-│   ├── prompts/          # Prompts associated with each tool
+├── prompts/          # Prompts associated with each tool
 │
 ├── frontend/             # Front-end interface (React)
 ├── requirements.txt      # Library versions and dependencies
