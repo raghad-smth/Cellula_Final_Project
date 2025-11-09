@@ -36,7 +36,7 @@ KAIRO combines multiple advanced tools and frameworks to achieve reliable perfor
 KAIRO operates through a modular tool-based architecture.
 Each tool is responsible for a specific step in the reasoning process. All tools are located inside the `tools/` directory, and each tool has its own custom prompt defined inside the `prompts/` directory.
 
-### 🔷 **Toolchain Summary**
+### **Toolchain Summary**
 
 1. **Conscious Presence Judge** – Determines whether the current context is sufficient or if additional information is needed.
 2. **Web Search Tool (Tavily)** – Performs live internet searches to gather external data when required.
