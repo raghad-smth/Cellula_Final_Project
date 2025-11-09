@@ -52,6 +52,10 @@ The main agent orchestrating these tools can be found in the `agent/` directory.
 
 The front-end implementation (React-based interface) is stored under the `frontend/` directory.
 
+--- 
+#### Chatting Window 
+<img width="1837" height="849" alt="image" src="https://github.com/user-attachments/assets/b418b4f4-1a93-48a5-af7f-c6b9e593e60f" />
+
 ---
 
 ## 🔷 Directory Structure
